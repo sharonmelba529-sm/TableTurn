@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TableTurn | Restaurant Management</title>
+
+    <style>
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+        }
+
+        body {
+          background: #f4f6fa;
+          color: #202938;
+        }
+
+        .layout {
+          display: flex;
+          min-height: 100vh;
+        }
+
+        .sidebar {
+          width: 235px;
+          background: #17243a;
+          color: white;
+          padding: 25px 15px;
+          flex-shrink: 0;
+        }
+
+        .brand {
+          font-size: 25px;
+          font-weight: bold;
+          padding: 0 12px 30px;
+        }
+
+        .brand span {
+          color: #f5a623;
+        }
+
+        .nav-button {
+          width: 100%;
+          display: block;
+          border: none;
+          background: transparent;
+          color: #d4dbea;
+          text-align: left;
+          padding: 14px 16px;
+          margin: 5px 0;
+          border-radius: 8px;
+          font-size: 15px;
+          cursor: pointer;
+        }
+
+        .nav-button:hover,
+        .nav-button.active {
+          background: #f5a623;
+          color: #17243a;
+        }
+
+        .main {
+          flex: 1;
+          min-width: 0;
+          padding: 30px;
+        }
+
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 25px;
+        }
+
+        h1 {
+          font-size: 28px;
+          margin-bottom: 8px;
+        }
+
+        .subtitle {
+          color: #687386;
+        }
+
+        .page {
+          display: none;
+        }
+
+        .page.active {
+          display: block;
+        }
+
+        .cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 18px;
+          margin: 25px 0;
+        }
+
+        .stat-card,
+        .panel {
+          background: white;
+          border-radius: 12px;
+          padding: 22px;
+          box-shadow: 0 3px 14px rgba(20, 35, 60, 0.06);
+        }
+
+        .stat-card p {
+          color: #687386;
+          margin-bottom: 12px;
+        }
+
+        .stat-card h2 {
+          font-size: 30px;
+          color: #17243a;
+        }
+
+        .panel {
+          margin-top: 20px;
+        }
+
+        .panel h2 {
+          margin-bottom: 18px;
+          font-size: 20px;
+        }
+
+        .form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .field.full {
+          grid-column: 1 / -1;
+        }
+
+        label {
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        input,
+        select {
+          width: 100%;
+          padding: 11px 12px;
+          border: 1px solid #d5dbe5;
+          border-radius: 7px;
+          background: white;
+          font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+          outline: 2px solid #f5a623;
+          border-color: transparent;
+        }
+
+        button.action {
+          border: none;
+          background: #17243a;
+          color: white;
+          padding: 11px 17px;
+          border-radius: 7px;
+          cursor: pointer;
+          font-size: 14px;
+          margin-top: 16px;
+        }
+
+        button.action:hover {
+          background: #2c4162;
+        }
+
+        button.secondary {
+          background: #e8edf5;
+          color: #17243a;
+        }
+
+        button.danger {
+          background: #b42318;
+          padding: 8px 11px;
+          margin-top: 0;
+        }
+
+        .item-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr auto;
+          gap: 10px;
+          margin-bottom: 12px;
+          align-items: end;
+        }
+
+        .item-row .field {
+          min-width: 0;
+        }
+
+        .message {
+          display: none;
+          padding: 12px 14px;
+          border-radius: 7px;
+          margin-top: 15px;
+          line-height: 1.5;
+          overflow-wrap: anywhere;
+        }
+
+        .message.success {
+          display: block;
+          color: #176b3a;
+          background: #e7f7ed;
+        }
+
+        .message.error {
+          display: block;
+          color: #9b1c1c;
+          background: #fdecec;
+        }
+
+        .table-wrap {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          min-width: 500px;
+        }
+
+        th,
+        td {
+          padding: 13px 12px;
+          border-bottom: 1px solid #e7eaf0;
+          text-align: left;
+          font-size: 14px;
+        }
+
+        th {
+          background: #f7f8fb;
+          color: #526075;
+        }
+
+        .empty {
+          color: #687386;
+          padding: 18px 0;
+        }
+
+        .refresh-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 760px) {
+          .layout {
+            display: block;
+          }
+
+          .sidebar {
+            width: 100%;
+            padding: 15px;
+          }
+
+          .brand {
+            padding: 5px 8px 15px;
+          }
+
+          .nav-button {
+            display: inline-block;
+            width: auto;
+            margin: 3px;
+            padding: 10px 12px;
+          }
+
+          .main {
+            padding: 20px 14px;
+          }
+
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .field.full {
+            grid-column: auto;
+          }
+
+          .item-row {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .item-row .field:first-child {
+            grid-column: 1 / -1;
+          }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="brand">Table<span>Turn</span></div>
+
+        <button class="nav-button active" data-page="dashboard">Dashboard</button>
+        <button class="nav-button" data-page="tables">Tables</button>
+        <button class="nav-button" data-page="reservations">Reservations</button>
+        <button class="nav-button" data-page="orders">Orders</button>
+        <button class="nav-button" data-page="billing">Billing</button>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1 id="pageTitle">Dashboard</h1>
+                <p class="subtitle">Restaurant reservation and order management</p>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <section class="page active" id="dashboard">
+            <div class="cards">
+                <div class="stat-card">
+                    <p>Total Tables</p>
+                    <h2 id="tableCount">—</h2>
+                </div>
+                <div class="stat-card">
+                    <p>Total Reservations</p>
+                    <h2 id="reservationCount">—</h2>
+                </div>
+                <div class="stat-card">
+                    <p>Total Orders</p>
+                    <h2 id="orderCount">—</h2>
+                </div>
+                <div class="stat-card">
+                    <p>Bills Generated</p>
+                    <h2 id="billCount">—</h2>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Welcome to TableTurn</h2>
+                <p class="subtitle">
+                    Use the sidebar to manage restaurant tables, create reservations,
+                    place orders, and generate bills.
+                </p>
+                <div id="dashboardMessage" class="message"></div>
+            </div>
+        </section>
+
+        <!-- TABLES -->
+        <section class="page" id="tables">
+            <div class="panel">
+                <div class="refresh-row">
+                    <h2>Restaurant Tables</h2>
+                    <button class="action" type="button" onclick="loadTables()">Refresh Tables</button>
+                </div>
+                <div id="tablesMessage" class="message"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Table ID</th>
+                            <th>Table Number</th>
+                            <th>Capacity</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tablesBody">
+                        <tr><td colspan="4">Loading tables...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESERVATIONS -->
+        <section class="page" id="reservations">
+            <div class="panel">
+                <h2>Create Reservation</h2>
+
+                <form id="reservationForm">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="customerName">Customer Name</label>
+                            <input id="customerName" name="customerName" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="reservationTableId">Table ID</label>
+                            <input id="reservationTableId" name="tableId" type="number" min="1" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="reservationDate">Date</label>
+                            <input id="reservationDate" name="reservationDate" type="date" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="partySize">Number of Guests</label>
+                            <input id="partySize" name="partySize" type="number" min="1" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="startTime">Start Time</label>
+                            <input id="startTime" name="startTime" type="time" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="endTime">End Time</label>
+                            <input id="endTime" name="endTime" type="time" required>
+                        </div>
+                    </div>
+
+                    <button class="action" type="submit">Create Reservation</button>
+                </form>
+                <div id="reservationMessage" class="message"></div>
+            </div>
+
+            <div class="panel">
+                <div class="refresh-row">
+                    <h2>Reservation Records</h2>
+                    <button class="action" type="button" onclick="loadReservations()">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Table ID</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Guests</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody id="reservationsBody">
+                        <tr><td colspan="7">Click Refresh to load reservations.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ORDERS -->
+        <section class="page" id="orders">
+            <div class="panel">
+                <h2>Create Order</h2>
+
+                <form id="orderForm">
+                    <div class="field">
+                        <label for="orderTableId">Table ID</label>
+                        <input id="orderTableId" type="number" min="1" required>
+                    </div>
+
+                    <h3 style="margin:22px 0 12px;">Food Items</h3>
+                    <div id="itemsContainer"></div>
+
+                    <button class="action secondary" type="button" id="addItemButton">
+                        + Add Another Item
+                    </button>
+                    <br>
+                    <button class="action" type="submit">Place Order</button>
+                </form>
+
+                <div id="orderMessage" class="message"></div>
+            </div>
+
+            <div class="panel">
+                <div class="refresh-row">
+                    <h2>Order Records</h2>
+                    <button class="action" type="button" onclick="loadOrders()">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Table ID</th>
+                            <th>Order Time</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                        <tr><td colspan="4">Click Refresh to load orders.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- BILLING -->
+        <section class="page" id="billing">
+            <div class="panel">
+                <h2>Generate Bill</h2>
+
+                <form id="billForm">
+                    <div class="field">
+                        <label for="billOrderId">Order ID</label>
+                        <input id="billOrderId" type="number" min="1" required>
+                    </div>
+                    <button class="action" type="submit">Generate Bill</button>
+                </form>
+
+                <div id="billMessage" class="message"></div>
+            </div>
+
+            <div class="panel">
+                <div class="refresh-row">
+                    <h2>Generated Bills</h2>
+                    <button class="action" type="button" onclick="loadBills()">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Order ID</th>
+                            <th>Total Amount</th>
+                            <th>Bill Time</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody id="billsBody">
+                        <tr><td colspan="5">Click Refresh to load bills.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    // ---------- SIDEBAR NAVIGATION ----------
+    const navButtons = document.querySelectorAll(".nav-button");
+    const pages = document.querySelectorAll(".page");
+    const pageTitle = document.getElementById("pageTitle");
+
+    function showSection(sectionId) {
+      pages.forEach(page => {
+        page.classList.toggle("active", page.id === sectionId);
+      });
+
+      navButtons.forEach(button => {
+        button.classList.toggle("active", button.dataset.page === sectionId);
+      });
+
+      const selectedButton = [...navButtons].find(
+        button => button.dataset.page === sectionId
+      );
+
+      pageTitle.textContent = selectedButton
+        ? selectedButton.textContent
+        : "Dashboard";
+
+      if (sectionId === "dashboard") loadDashboard();
+      if (sectionId === "tables") loadTables();
+      if (sectionId === "reservations") loadReservations();
+      if (sectionId === "orders") loadOrders();
+      if (sectionId === "billing") loadBills();
+    }
+
+    navButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        showSection(button.dataset.page);
+      });
+    });
+
+    // ---------- COMMON HELPERS ----------
+    async function apiRequest(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+
+      const text = await response.text();
+      let data = null;
+
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+      }
+
+      if (!response.ok) {
+        let message = "Request failed (" + response.status + ")";
+        if (data && typeof data === "object") {
+          message = data.message || data.error || message;
+        } else if (typeof data === "string" && data.trim()) {
+          message = data;
+        }
+        throw new Error(message);
+      }
+
+      return data;
+    }
+
+    function showMessage(elementId, message, success) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = "message " + (success ? "success" : "error");
+    }
+
+    function clearMessage(elementId) {
+      const element = document.getElementById(elementId);
+      element.textContent = "";
+      element.className = "message";
+    }
+
+    function asArray(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.content)) return data.content;
+      return [];
+    }
+
+    function display(value) {
+      return value === null || value === undefined || value === ""
+        ? "—"
+        : value;
+    }
+
+    function addCell(row, value) {
+      const cell = document.createElement("td");
+      cell.textContent = display(value);
+      row.appendChild(cell);
+    }
+
+    function addEmptyRow(bodyId, columnCount, message) {
+      const body = document.getElementById(bodyId);
+      body.innerHTML = "";
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = columnCount;
+      cell.textContent = message;
+      row.appendChild(cell);
+      body.appendChild(row);
+    }
+
+    // ---------- DASHBOARD ----------
+    async function loadDashboard() {
+      try {
+        const [tables, reservations, orders, bills] = await Promise.all([
+          apiRequest("/api/tables"),
+          apiRequest("/api/reservations"),
+          apiRequest("/api/orders"),
+          apiRequest("/api/bills")
+        ]);
+
+        document.getElementById("tableCount").textContent = asArray(tables).length;
+        document.getElementById("reservationCount").textContent = asArray(reservations).length;
+        document.getElementById("orderCount").textContent = asArray(orders).length;
+        document.getElementById("billCount").textContent = asArray(bills).length;
+
+        clearMessage("dashboardMessage");
+      } catch (error) {
+        showMessage(
+          "dashboardMessage",
+          "Could not load dashboard totals. Check that Spring Boot is running and the API endpoints are available. " + error.message,
+          false
+        );
+      }
+    }
+
+    // ---------- TABLES ----------
+    async function loadTables() {
+      const body = document.getElementById("tablesBody");
+      body.innerHTML = "<tr><td colspan='4'>Loading tables...</td></tr>";
+      clearMessage("tablesMessage");
+
+      try {
+        const data = asArray(await apiRequest("/api/tables"));
+        body.innerHTML = "";
+
+        if (data.length === 0) {
+          addEmptyRow("tablesBody", 4, "No tables found.");
+          return;
+        }
+
+        data.forEach(table => {
+          const row = document.createElement("tr");
+          addCell(row, table.tableId);
+          addCell(row, table.tableNumber);
+          addCell(row, table.capacity);
+          addCell(row, table.status);
+          body.appendChild(row);
+        });
+      } catch (error) {
+        addEmptyRow("tablesBody", 4, "Unable to load tables.");
+        showMessage("tablesMessage", error.message, false);
+      }
+    }
+
+    // ---------- RESERVATIONS ----------
+    document.getElementById("reservationForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      clearMessage("reservationMessage");
+
+      const reservation = {
+        customerName: document.getElementById("customerName").value.trim(),
+        tableId: Number(document.getElementById("reservationTableId").value),
+        reservationDate: document.getElementById("reservationDate").value,
+        startTime: document.getElementById("startTime").value,
+        endTime: document.getElementById("endTime").value,
+        partySize: Number(document.getElementById("partySize").value)
+      };
+
+      try {
+        await apiRequest("/api/reservations", {
+          method: "POST",
+          body: JSON.stringify(reservation)
+        });
+
+        showMessage("reservationMessage", "Reservation created successfully!", true);
+        event.target.reset();
+        loadReservations();
+        loadDashboard();
+      } catch (error) {
+        showMessage("reservationMessage", error.message, false);
+      }
+    });
+
+    async function loadReservations() {
+      const body = document.getElementById("reservationsBody");
+      body.innerHTML = "<tr><td colspan='7'>Loading reservations...</td></tr>";
+
+      try {
+        const data = asArray(await apiRequest("/api/reservations"));
+        body.innerHTML = "";
+
+        if (data.length === 0) {
+          addEmptyRow("reservationsBody", 7, "No reservations found.");
+          return;
+        }
+
+        data.forEach(reservation => {
+          const row = document.createElement("tr");
+          addCell(row, reservation.reservationId);
+          addCell(row, reservation.customerName);
+          addCell(row, reservation.tableId);
+          addCell(row, reservation.reservationDate);
+          addCell(row, (reservation.startTime || "") + " - " + (reservation.endTime || ""));
+          addCell(row, reservation.partySize);
+          addCell(row, reservation.status);
+          body.appendChild(row);
+        });
+      } catch (error) {
+        addEmptyRow("reservationsBody", 7, "Unable to load reservations.");
+        showMessage("reservationMessage", error.message, false);
+      }
+    }
+
+    // ---------- ORDER ITEMS ----------
+    const itemsContainer = document.getElementById("itemsContainer");
+
+    function addItemRow() {
+      const row = document.createElement("div");
+      row.className = "item-row";
+
+      row.innerHTML = `
+        <div class="field">
+          <label>Food Item</label>
+          <input class="item-name" type="text" placeholder="Item name" required>
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input class="item-quantity" type="number" min="1" value="1" required>
+        </div>
+        <div class="field">
+          <label>Unit Price</label>
+          <input class="item-price" type="number" min="0" step="0.01" placeholder="Price" required>
+        </div>
+        <button class="action danger remove-item" type="button">Remove</button>
+      `;
+
+      row.querySelector(".remove-item").addEventListener("click", () => {
+        if (itemsContainer.children.length > 1) {
+          row.remove();
+        } else {
+          showMessage("orderMessage", "An order must contain at least one item.", false);
+        }
+      });
+
+      itemsContainer.appendChild(row);
+    }
+
+    document.getElementById("addItemButton").addEventListener("click", addItemRow);
+
+    // Start with one item row.
+    addItemRow();
+
+    // ---------- ORDERS ----------
+    document.getElementById("orderForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      clearMessage("orderMessage");
+
+      const items = [...itemsContainer.querySelectorAll(".item-row")].map(row => ({
+        itemName: row.querySelector(".item-name").value.trim(),
+        quantity: Number(row.querySelector(".item-quantity").value),
+        unitPrice: Number(row.querySelector(".item-price").value)
+      }));
+
+      const order = {
+        tableId: Number(document.getElementById("orderTableId").value),
+        items: items
+      };
+
+      try {
+        const result = await apiRequest("/api/orders", {
+          method: "POST",
+          body: JSON.stringify(order)
+        });
+
+        const orderId = result && result.orderId !== undefined
+          ? " Order ID: " + result.orderId
+          : "";
+
+        showMessage("orderMessage", "Order placed successfully!" + orderId, true);
+        event.target.reset();
+        itemsContainer.innerHTML = "";
+        addItemRow();
+        loadOrders();
+        loadDashboard();
+      } catch (error) {
+        showMessage("orderMessage", error.message, false);
+      }
+    });
+
+    async function loadOrders() {
+      const body = document.getElementById("ordersBody");
+      body.innerHTML = "<tr><td colspan='4'>Loading orders...</td></tr>";
+
+      try {
+        const data = asArray(await apiRequest("/api/orders"));
+        body.innerHTML = "";
+
+        if (data.length === 0) {
+          addEmptyRow("ordersBody", 4, "No orders found.");
+          return;
+        }
+
+        data.forEach(order => {
+          const row = document.createElement("tr");
+          addCell(row, order.orderId);
+          addCell(row, order.tableId);
+          addCell(row, order.orderTime);
+          addCell(row, order.status);
+          body.appendChild(row);
+        });
+      } catch (error) {
+        addEmptyRow("ordersBody", 4, "Unable to load orders.");
+        showMessage("orderMessage", error.message, false);
+      }
+    }
+
+    // ---------- BILLING ----------
+    document.getElementById("billForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      clearMessage("billMessage");
+
+      const orderId = document.getElementById("billOrderId").value;
+
+      try {
+        const bill = await apiRequest("/api/bills/" + encodeURIComponent(orderId), {
+          method: "POST"
+        });
+
+        const billId = bill && bill.billId !== undefined ? bill.billId : "—";
+        const total = bill && bill.totalAmount !== undefined ? bill.totalAmount : "—";
+
+        showMessage(
+          "billMessage",
+          "Bill generated successfully! Bill ID: " + billId + " | Total: ₹" + total,
+          true
+        );
+
+        event.target.reset();
+        loadBills();
+        loadDashboard();
+      } catch (error) {
+        showMessage("billMessage", error.message, false);
+      }
+    });
+
+    async function loadBills() {
+      const body = document.getElementById("billsBody");
+      body.innerHTML = "<tr><td colspan='5'>Loading bills...</td></tr>";
+
+      try {
+        const data = asArray(await apiRequest("/api/bills"));
+        body.innerHTML = "";
+
+        if (data.length === 0) {
+          addEmptyRow("billsBody", 5, "No bills found.");
+          return;
+        }
+
+        data.forEach(bill => {
+          const row = document.createElement("tr");
+          addCell(row, bill.billId);
+          addCell(row, bill.orderId);
+          addCell(row, bill.totalAmount);
+          addCell(row, bill.billTime);
+          addCell(row, bill.status);
+          body.appendChild(row);
+        });
+      } catch (error) {
+        addEmptyRow("billsBody", 5, "Unable to load bills.");
+        showMessage("billMessage", error.message, false);
+      }
+    }
+
+    // Load dashboard when the page first opens.
+    loadDashboard();
+</script>
+</body>
+</html>
